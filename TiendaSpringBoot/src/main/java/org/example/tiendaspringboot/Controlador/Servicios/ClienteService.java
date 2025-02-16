@@ -2,6 +2,7 @@ package org.example.tiendaspringboot.Controlador.Servicios;
 
 import org.example.tiendaspringboot.Modelo.DTOs.Cliente;
 import org.example.tiendaspringboot.Modelo.Repositorios.ClienteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import java.util.Optional;
 public class ClienteService {
     private final ClienteRepository clienteRepository;
 
+    @Autowired
     public ClienteService(ClienteRepository clienteRepository) {
         this.clienteRepository = clienteRepository;
     }
