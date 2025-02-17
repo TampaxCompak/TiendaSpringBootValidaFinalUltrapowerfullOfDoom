@@ -28,29 +28,25 @@ public class HistorialController {
         this.clienteService = clienteService;
         this.productoService = productoService;
     }
-
     @GetMapping
     public List<Historial> getHistorial() {
         return historialService.findAll();
     }
-
-    @GetMapping("/historial/{id}")
-    public Historial obtenerHistorialId(@PathVariable int id) {
+    @GetMapping("/{id}")
+    public Historial getHistorialById(@PathVariable int id) {
         Optional<Historial> historial = historialService.findById(id);
         return historial.orElse(null);
     }
-
-    @PostMapping
+    @PostMapping("/historial_compra")
     public ResponseEntity<String> compraHistorial(@Valid @RequestBody HistorialDTO historialDTO) {
         Cliente cliente = clienteService.findById(historialDTO.getClienteId()).orElse(null);
         Producto producto = productoService.findById(historialDTO.getProductoId()).orElse(null);
 
-        if (cliente == null || producto == null) {
-            return ResponseEntity.badRequest().body("Error: Cliente o producto no encontrado.");
+        if(cliente == null || producto == null) {
+            return ResponseEntity.badRequest().body("Cliente o producto no encontrados");
         }
-
-        if (historialDTO.getCantidad() > producto.getStock()) {
-            return ResponseEntity.badRequest().body("Error: Stock insuficiente. Cantidad disponible: " + producto.getStock());
+        if(historialDTO.getCantidad()>producto.getStock()){
+            return ResponseEntity.badRequest().body("No hay stock suficiente");
         }
 
         Historial historial = new Historial();
@@ -65,28 +61,24 @@ public class HistorialController {
         productoService.save(producto);
 
         historialService.save(historial);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Historial creado con éxito.");
+        return ResponseEntity.ok().body("Compra creada");
     }
-
     @PostMapping("/historial_devolucion")
-    public ResponseEntity<String> devolverHistorial(@Valid @RequestBody HistorialDTO historialDTO) {
+    public ResponseEntity<String> devolucionHistorial(@Valid @RequestBody HistorialDTO historialDTO) {
         Cliente cliente = clienteService.findById(historialDTO.getClienteId()).orElse(null);
         Producto producto = productoService.findById(historialDTO.getProductoId()).orElse(null);
-
-        if (cliente == null || producto == null) {
-            return ResponseEntity.badRequest().body("Error: Cliente o producto no encontrado.");
+        if(cliente == null || producto == null) {
+            return ResponseEntity.badRequest().body("Cliente o producto no encontrados");
         }
-
         Historial historialCompra = historialService.findByClienteAndProducto(cliente, producto);
         if (historialCompra == null) {
-            return ResponseEntity.badRequest().body("Error: No se encontró un historial de compra para devolver.");
+            return ResponseEntity.badRequest().body("No se encontro el historial");
         }
 
         long diasDesdeCompra = ChronoUnit.DAYS.between(historialCompra.getFechaTransaccion(), LocalDate.now());
-        if (diasDesdeCompra > 30) {
-            return ResponseEntity.badRequest().body("Error: No se puede devolver un producto después de 30 días.");
+        if (diasDesdeCompra > 30){
+            return ResponseEntity.badRequest().body("No se pueden realizar devoluciones pasados los 30 días");
         }
-
         Historial historial = new Historial();
         historial.setCliente(cliente);
         historial.setProducto(producto);
@@ -98,54 +90,39 @@ public class HistorialController {
         producto.setStock(producto.getStock() + historialDTO.getCantidad());
         productoService.save(producto);
         historialService.save(historial);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body("Devolución registrada con éxito.");
+        return ResponseEntity.ok().body("Devolución realizada con éxito");
     }
-
     @PutMapping("/{id}")
-    public ResponseEntity<String> actualizarHistorial(
-            @PathVariable Integer id,
-            @Valid @RequestBody HistorialUpdateDTO historialDTO) {
-
+    public ResponseEntity<String> actualizarHistorial(@PathVariable int id, @Valid @RequestBody HistorialUpdateDTO historialUpdateDTO) {
         Historial historial = historialService.findById(id).orElse(null);
         if (historial == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().body("Historial no encontrado");
         }
-
         Producto producto = historial.getProducto();
+        if (historialUpdateDTO.getCantidad() != null && !historialUpdateDTO.getCantidad().equals(producto.getStock())) {
+            int diferencia = historialUpdateDTO.getCantidad() - historial.getCantidad();
 
-        if (historialDTO.getCantidad() != null && !historialDTO.getCantidad().equals(historial.getCantidad())) {
-            int diferencia = historialDTO.getCantidad() - historial.getCantidad();
-
-            if ("COMPRA".equalsIgnoreCase(historial.getTipo())) {
+            if ("COMPRA".equals(historialUpdateDTO.getTipo())) {
                 if (producto.getStock() + diferencia < 0) {
-                    return ResponseEntity.badRequest().body("Error: Stock insuficiente para modificar la cantidad.");
+                    return ResponseEntity.badRequest().body("Stock insuficiente");
                 }
-                producto.setStock(producto.getStock() - diferencia);
-            } else if ("DEVOLUCIÓN".equalsIgnoreCase(historial.getTipo())) {
+                producto.setStock(producto.getStock() + diferencia);
+            } else if ("DEVOLUCION".equals(historial.getTipo())) {
                 producto.setStock(producto.getStock() + diferencia);
             }
-
             productoService.save(producto);
-            historial.setCantidad(historialDTO.getCantidad());
+            historial.setCantidad(historialUpdateDTO.getCantidad());
         }
-
-        if (historialDTO.getTipo() != null) historial.setTipo(historialDTO.getTipo());
-        if (historialDTO.getDescripcion() != null) historial.setDescripcion(historialDTO.getDescripcion());
-
+        if (historialUpdateDTO.getDescripcion() != null) historial.setDescripcion(historialUpdateDTO.getDescripcion());
         historialService.save(historial);
-        return ResponseEntity.ok("Historial actualizado correctamente.");
+        return ResponseEntity.ok().body("Historial actualizado");
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> eliminarHistorial(@PathVariable Integer id) {
-        Historial historial = historialService.findById(id).orElse(null);
-
-        if (historial == null) {
+    @DeleteMapping
+    public ResponseEntity<Void> eliminarHistorial(@PathVariable int id) {
+        if (!historialService.findById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
-
         historialService.delete(id);
-        return ResponseEntity.ok("Historial eliminado correctamente.");
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
