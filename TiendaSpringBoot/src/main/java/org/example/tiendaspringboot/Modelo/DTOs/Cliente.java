@@ -57,6 +57,8 @@ public class Cliente {
     @OneToMany(mappedBy = "cliente")
     private Set<org.example.tiendaspringboot.Modelo.DTOs.Historial> historials = new LinkedHashSet<>();
 
+    public Cliente() {
+    }
     public Integer getId() {
         return id;
     }
