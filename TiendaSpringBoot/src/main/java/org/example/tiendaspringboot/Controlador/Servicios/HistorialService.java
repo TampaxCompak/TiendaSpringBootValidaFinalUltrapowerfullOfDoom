@@ -18,7 +18,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
-@Transactional
+
 @Service
 public class HistorialService {
     private final HistorialRepository historialRepository;
@@ -41,7 +41,7 @@ public class HistorialService {
     public Optional<Historial> findById(Integer id) {
         return historialRepository.findById(id);
     }
-
+    @Transactional
     public Historial save(Historial historial) {
         return historialRepository.save(historial);
     }
@@ -53,7 +53,7 @@ public class HistorialService {
     public Historial findByClienteAndProducto(Cliente cliente, Producto producto) {
         return historialRepository.findFirstByClienteAndProductoAndTipo(cliente, producto, "COMPRA").orElse(null);
     }
-
+    @Transactional
     public ResponseEntity<String> realizarCompra(HistorialDTO historialDTO) {
         Cliente cliente = clienteRepository.findById(historialDTO.getClienteId()).orElse(null);
         Producto producto = productoRepository.findById(historialDTO.getProductoId()).orElse(null);
@@ -79,7 +79,7 @@ public class HistorialService {
 
         return ResponseEntity.ok().body("Historial creado");
     }
-
+    @Transactional
     public ResponseEntity<String> realizarDevolucion(HistorialDTO historialDTO) {
         Cliente cliente = clienteRepository.findById(historialDTO.getClienteId()).orElse(null);
         Producto producto = productoRepository.findById(historialDTO.getProductoId()).orElse(null);
@@ -111,7 +111,7 @@ public class HistorialService {
 
         return ResponseEntity.ok().body("Devolución registrada");
     }
-
+    @Transactional
     public ResponseEntity<String> actualizarHistorial(Integer id, HistorialDTO historialDTO) {
         Historial historial = historialRepository.findById(id).orElse(null);
         if (historial == null) {
