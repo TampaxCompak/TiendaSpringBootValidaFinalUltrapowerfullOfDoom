@@ -32,7 +32,7 @@ public class HistorialController {
     public List<Historial> getHistorial() {
         return historialService.findAll();
     }
-    @GetMapping("/historial/{id}")
+    @GetMapping("/{id}")
     public Historial getHistorialById(@PathVariable int id) {
         Optional<Historial> historial = historialService.findById(id);
         return historial.orElse(null);
