@@ -27,7 +27,7 @@ public class ProductoController {
         return productoService.findAll();
     }
 
-    @GetMapping("/producto/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Producto> buscar(@PathVariable Integer id) {
         Optional<Producto> producto = productoService.findById(id);
         return producto.isPresent() ? ResponseEntity.ok(producto.get()) : ResponseEntity.notFound().build();
