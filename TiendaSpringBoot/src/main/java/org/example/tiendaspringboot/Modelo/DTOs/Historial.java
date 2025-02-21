@@ -41,6 +41,8 @@ public class Historial {
     @Column(name = "descripcion", length = 200)
     private String descripcion;
 
+    public Historial() {
+    }
     public Integer getId() {
         return id;
     }
