@@ -25,7 +25,7 @@ public class ClienteController {
         return clienteService.findAll();
     }
 
-    @GetMapping("/cliente/{id}")
+    @GetMapping("/{id}")
     public Cliente findById(@PathVariable Integer id) {
         Optional<Cliente> cliente = clienteService.findById(id);
         return cliente.orElse(null);
