@@ -1,5 +1,7 @@
 package org.example.tiendaspringboot.Modelo.DTOs;
+import jakarta.persistence.Entity;
 
+@Entity
 public class HistorialDTO {
     private Integer clienteId;
     private Integer productoId;
