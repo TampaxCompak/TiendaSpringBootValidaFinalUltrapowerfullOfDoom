@@ -44,6 +44,9 @@ public class Producto {
     @OneToMany(mappedBy = "producto")
     private Set<Historial> historials = new LinkedHashSet<>();
 
+    public Producto() {
+    }
+    
     public Integer getId() {
         return id;
     }
